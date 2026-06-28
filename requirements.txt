@@ -1,0 +1,12 @@
+# Resolution-Invariant: multi-frequency experiment + IB 5m data
+pandas>=1.5.0
+numpy>=1.20.0
+ib_insync>=0.9.86
+PyYAML>=5.4
+scikit-learn>=1.0.0
+matplotlib>=3.5.0
+# Calibrated DGP: ML fit of MS-Gaussian + GARCH(1,1) on SPY data
+statsmodels>=0.14.0
+arch>=6.0.0
+# Optional: parallel n_jobs for the simulation sweeps (exp_04 / exp_11 / exp_13 / exp_18)
+joblib>=1.0

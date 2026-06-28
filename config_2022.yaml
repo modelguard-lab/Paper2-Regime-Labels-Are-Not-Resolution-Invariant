@@ -1,0 +1,25 @@
+raw_dir: data_2022
+outputs_dir: outputs_2022
+
+# Explicit analysis episode window set for 2022 sample
+episode: 2022_ukraine
+
+# Universe (same three assets)
+assets:
+  - SPY
+  - USDJPY
+  - GLD
+# CL omitted: IB CONTFUT pre-2024 5m history is forward-fill placeholder
+# data (~99.6% O=H=L=C bars), unusable for cross-frequency regime analysis.
+
+ensure_data:
+  mode: auto
+  download_missing: true
+  refresh_if_outdated: true
+  outdated_slack_days: 1
+
+ib:
+  host: 127.0.0.1
+  port: 4002
+  start_date: 2021-12-01
+  end_date: 2022-05-31

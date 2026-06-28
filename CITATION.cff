@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite the paper and/or this repository."
+title: "Regime Labels Are Not Resolution-Invariant: Evidence from the 2026 US–Iran Escalation"
+type: software
+authors:
+  - family-names: "Zheng"
+    given-names: "Kai"
+year: 2026
+doi: 10.2139/ssrn.6531002
+license: AGPL-3.0-or-later
+repository-code: "https://github.com/modelguard-lab/Paper2-Regime-Labels-Are-Not-Resolution-Invariant"
+keywords:
+  - regime detection
+  - Gaussian mixture model
+  - adjusted Rand index
+  - multi-frequency

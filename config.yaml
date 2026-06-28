@@ -1,0 +1,64 @@
+raw_dir: data
+outputs_dir: outputs
+
+# Explicit analysis episode windows used by the pipeline:
+# - 2026_iran
+# - 2022_ukraine
+episode: 2026_iran
+
+# Universe.  CL=F is futures-only and only retrievable for the 2026 window
+# (IB CONTFUT can return at most ~6 months of history from "now"); for the
+# 2022 OOS episode CL is intentionally absent and the pipeline silently
+# skips it via iter_loaded_assets.  GLD provides commodity-class coverage
+# in both episodes.
+#
+# Round-2 expansion (2026-05-08): QQQ added as a second equity probe
+# to address the "single equity asset" referee comment in the round-2
+# review. EURUSD/BZ/NG/GC raw data is downloaded but their incorporation
+# into the experimental panel is deferred to the next paper.
+assets:
+  - SPY
+  - QQQ
+  - USDJPY
+  - CL
+  - GLD
+
+# Control how we "ensure data" before running the analysis.
+# - auto: download (if missing/outdated) -> validate -> run pipeline
+# - download_only: download (if missing/outdated) -> validate -> stop
+# - validate_only: validate only -> stop
+ensure_data:
+  mode: auto
+
+  # If true, download tickers whose *_5m.csv is missing.
+  download_missing: true
+
+  # If true, also treat existing files as "needs download" when their last timestamp
+  # is earlier than ib.end_date (or "today" when ib.end_date is null).
+  refresh_if_outdated: true
+
+  # Allow a little slack (in days) when comparing the file's last timestamp to the target end date.
+  # Example: 1 means "if last bar is older than end_date - 1 day, refresh".
+  outdated_slack_days: 1
+
+ib:
+  host: 127.0.0.1
+  port: 4002
+  # client_id: 12345  # optional; if omitted runner picks a random one
+
+  # 6-month window covering pre-protest baseline (Nov-Dec 2025) through the
+  # 2026 US-Iran escalation (Feb 28 strike, March VIX peak) and stabilisation
+  # (April-May).  See src/core/config.py EPISODES for the analysis windows.
+  start_date: 2025-11-01
+  end_date: 2026-05-01
+
+  # Continuous front-month futures.  Required for the IB CONTFUT path;
+  # without this each future is treated as a fixed-expiry contract and
+  # pulls one stale back-month.
+  future_expiry_by_symbol:
+    CL: CONTFUT
+    "CL=F": CONTFUT
+    BZ: CONTFUT
+    NG: CONTFUT
+    GC: CONTFUT
+    HG: CONTFUT

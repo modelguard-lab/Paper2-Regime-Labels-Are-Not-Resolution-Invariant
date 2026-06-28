@@ -1,0 +1,286 @@
+\documentclass[preprint,12pt,authoryear]{elsarticle}
+
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage[hidelinks]{hyperref}  % hidelinks = no visible coloured boxes around \ref / \cite
+\usepackage{xurl}  % allow URL line-breaking anywhere (must load after hyperref)
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{multirow}
+\usepackage{enumitem}
+\usepackage{ragged2e}  % \justifying for table-note paragraphs inside centred floats
+\setlength{\emergencystretch}{6em}
+
+\makeatletter
+\pdfstringdefDisableCommands{%
+  \def\corref#1{}%
+  \def\@corref#1{}%
+  \def\cnotenum{}%
+}
+\makeatother
+
+% Drop the trailing \hrule that elsarticle places between the keywords
+% block and \S1 Introduction (kept the leading rule between authors and
+% abstract for visual separation).
+\makeatletter
+\long\def\pprintMaketitle{\clearpage
+  \iflongmktitle\if@twocolumn\let\columnwidth=\textwidth\fi\fi
+  \resetTitleCounters
+  \def\baselinestretch{1}%
+  \printFirstPageNotes
+  \begin{\elsarticletitlealign}%
+    \thispagestyle{pprintTitle}%
+    \def\baselinestretch{1}%
+    \Large\@title\par\vskip18pt%
+    \ifx\@elsarticlenewpageafter\newpage@after@title%
+      \newpage
+    \fi%
+    \ifdoubleblind
+      \vspace*{2pc}
+    \else
+      \normalsize\elsauthors\par\vskip10pt
+      \footnotesize\itshape\elsaddress\par\vskip36pt
+    \fi
+    \ifx\@elsarticlenewpageafter\newpage@after@author%
+      \newpage
+    \fi%
+    \hrule\vskip12pt
+    \ifvoid\absbox\else\unvbox\absbox\par\vskip10pt\fi
+    \ifvoid\keybox\else\unvbox\keybox\par\vskip10pt\fi
+    \ifx\@elsarticlenewpageafter\newpage@after@abstract%
+      \newpage
+    \fi%
+  \end{\elsarticletitlealign}%
+  \gdef\thefootnote{\arabic{footnote}}%
+}
+\makeatother
+
+\journal{Finance Research Letters}
+
+% Tighter float placement: discourage sparse float-only pages.
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.9}
+\renewcommand{\textfraction}{0.05}
+\renewcommand{\floatpagefraction}{0.85}
+
+\newcommand{\SPY}{SPY}
+\newcommand{\CL}{CL}
+\newcommand{\USDJPY}{USD/JPY}
+\newcommand{\GLD}{GLD}
+
+\begin{document}
+
+\begin{frontmatter}
+\sloppy
+
+\title{Regime Labels Are Not Resolution-Invariant:\\ Evidence from the 2026 US--Iran Escalation}
+
+\author[1]{Kai Zheng}
+\ead{kaizhengnz@gmail.com}
+\ead[orcid]{0009-0004-6661-2023}
+\author[2]{Rand Low}
+\ead{rlow@bond.edu.au}
+\ead[orcid]{0000-0002-0290-7840}
+\author[1]{Ruili Wang\corref{cor1}}
+\ead{ruili.wang@massey.ac.nz}
+\ead[orcid]{0000-0003-2899-9816}
+
+\cortext[cor1]{Corresponding author: Ruili Wang}
+
+\affiliation[1]{organization={School of Mathematical and Computational Sciences\\Massey University},
+            city={Auckland},
+            country={New Zealand}}
+
+\affiliation[2]{organization={Bond Business School\\Bond University},
+            city={Gold Coast},
+            state={QLD},
+            country={Australia}}
+
+\begin{abstract}
+  Regime-switching models underpin risk limits and prudential model documentation, yet practitioners assume their labels are invariant to the sampling frequency at which the classifier is fit. We introduce \emph{resolution dissonance}: a post-classifier audit of cross-frequency label agreement across four asset classes (equity ETFs, FX, energy futures, metal ETF) at four sampling resolutions (5m--1d) over the 2026 US--Iran escalation, with a partial 2022 Russia--Ukraine replication. Resolution sensitivity manifests at two layers: at fine resolutions the binary regime concept itself fails for some assets (degenerate Gaussian-mixture splits); where regimes are well-identified, the same trading day is classified ``crisis'' at one frequency and ``calm'' at another. The headline finding is a uniform within-intraday excess of $+0.03$ to $+0.24$ in mean off-diagonal Adjusted Rand Index over a canonical-pipeline calibrated Markov-switching Gaussian baseline, with the largest single-step drop localised at the 15-minute to hourly boundary. A conservative-resolution VaR statistic lifts 99\% Value-at-Risk by 4.2\%--21.0\% across the panel. We propose a \emph{resolution envelope} as a model-risk diagnostic for SR~26-2 and BCBS~d457 (FRTB) model-validation.
+\end{abstract}
+
+\begin{keyword}
+resolution dissonance \sep temporal resolution invariance \sep regime identification \sep adjusted rand index \sep geopolitical risk \sep model risk \\[2pt]
+\textbf{JEL classification:} C58; G17; C52; G32
+\end{keyword}
+
+\end{frontmatter}
+\sloppy  % relax line-breaking globally to absorb dense citation/math runs without overfull-hbox
+
+\section{Introduction}
+
+Market regimes underpin risk limits, allocation, and derivative pricing \citep{Hamilton1989,AngTimmermann2012,Kim2025MarkovRegime}. Temporal aggregation structurally alters the data-generating process of Markov-switching models, rendering high- and low-frequency processes mathematically distinct \citep{ChanZhangCheung2009}; some cross-frequency label disagreement is therefore a structural certainty. The open empirical questions are how large it is, how it varies across assets and episodes, and whether it exceeds what pure aggregation predicts.
+
+This paper is the second in a two-part programme on regime-label invariance. The companion paper \citep{companion_rep} holds resolution fixed and asks whether labels are robust to \emph{feature-representation} choice; this paper asks the orthogonal \emph{cross-resolution} question and is not contingent on the companion. A multiscale literature studies volatility, jumps, and information transmission across time scales \citep{GencaySelcukGradojevicWhitcher2010,ErdemliogluGradojevic2021,GradojevicTsiakas2021}, but operates one inferential layer below this paper: those works extract \emph{continuous} multiscale objects (wavelet coefficients, jump-tail exposures, cascade transition probabilities) under joint-scale estimation, whereas the operational risk artefact a desk inherits is the \emph{discrete} crisis/calm label that drives limit-setting and prudential reporting. Joint estimation by construction smooths the post-classifier label disagreement we measure; independently fitting the same two-state classifier at each resolution exposes it. Per-paper differentiation is in Suppl~\S{}S1.1. We refer to this systematic cross-frequency disagreement as \emph{resolution dissonance}.
+
+We quantify dissonance on the 2026 US--Iran escalation \citep{ReutersIranMarkets2026Feb28,CaldaraIacoviello2022} (five assets at four resolutions 5m--1d) with a same-class partial second-episode replication on the 2022 Russia--Ukraine episode (three assets; oil futures absent from IB CONTFUT pre-2024 5m history). Headline numbers are reported under a two-state classifier ($K{=}2$), the operational diagnostic object since production limit-setting, dashboards, and prudential model-validation reports are written for binary calm/crisis labels. The within-intraday excess is uniform: at the 3-frequency subset (5m/15m/1h), all five 2026 assets exceed the calibrated upper bound by $+0.03$ to $+0.24$ against a canonical-pipeline $K{=}2$ MS-Gaussian baseline of 0.195 (IQR $[0.177, 0.213]$); at 4-frequency, four of five assets exceed the calibrated 0.113 (IQR $[0.099, 0.125]$) upper bound. The largest single-step ARI drop localises at the 15m$\to$1h boundary on SPY, QQQ, USD/JPY and GLD and replicates on the two equity probes on a chance-corrected basis (SPY 5m--15m 0.539$\to$15m--1h 0.138; QQQ 0.536$\to$0.133). CL is the apparent exception with full-sample 1h--1d ARI 0.39; restricted to the event or calm sub-window separately, CL 1h--1d collapses to ${\approx}\,0$ (statistically independent labels), so the headline 0.39 reflects cross-period mean-shift detection rather than within-period invariance (\S\ref{sec:cross_freq}, \S\ref{sec:methods_fit}).
+
+\section{Methodology and Data}
+
+We compare two-component GMM regime labels fitted independently at four sampling resolutions (5m, 15m, 1h, 1d) on the same price feed, with no cross-resolution information sharing. The implementation has three pieces: data construction, label fitting, and metric definitions.
+
+\subsection{Data construction}\label{sec:methods_data}
+We use 5-minute OHLC bars (Interactive Brokers) over six months (Nov 2025--May 2026) spanning the 2026 US--Iran escalation \citep{ReutersIranMarkets2026Feb28,CaldaraIacoviello2022}, with a same-class partial second-episode replication on Dec 2021--May 2022 (Russia--Ukraine). The 2026 universe is five assets spanning distinct microstructures: \SPY{} and QQQ (extended-session equity), \USDJPY{} (24h FX), \CL{} (continuous-session futures), \GLD{} (precious-metal ETF); QQQ is included as a second equity probe. The 2022 universe drops \CL{} (IB \texttt{CONTFUT}'s pre-2024 5m history is ${\sim}\,99.6\%$ forward-fill placeholder bars) and QQQ (5m bars not pulled in this round); \GLD{} provides commodity-class coverage. \CL{}'s 2026 5m and 15m GMMs are degenerate (one component absorbs ${>}\,99\%$ of bars; Suppl Table~S9); we use percentile-fallback labels (top 20\% of log-vol = crisis) at those endpoints, marked $\dagger$ throughout, so load-bearing CL evidence rests on the well-identified 1h and 1d fits.\footnote{The peak-stress \CL{} bars on 2026-03-06 (intraday $+13.9\%$, range $18.1\%$) and 2026-03-09 (intraday $-19.8\%$, range $35.4\%$) both fall on the front-month April 2026 NYMEX WTI contract (CME code CLJ26) and lie outside the calendar days 18--22 roll window (\S{}S1, Table~S14); the moves are therefore not roll-mechanics artefacts.} \USDJPY{} 5m is effectively unimodal under the GMM (separation $0.36$, overlap $0.85$; Suppl Table~S9); this reflects an intrinsic property of 5m FX log-volatility under microstructure noise \citep{AitSahaliaMykland2005,GencaySelcukWhitcher2001}, not an Interactive Brokers feed-quality issue. The cell is not flagged degenerate (the higher-mean component still carries non-negligible mass), so the GMM fit is retained without invoking the percentile fallback; \USDJPY{} 15m by contrast is degenerate-split and uses the fallback labels. Coarser frequencies (15m, 1h, 1d) are resampled deterministically from the 5m feed; daily bars use the 16:00 NY close. Instrument-choice rationale, base-resolution justification \citep{AitSahaliaMykland2005,Andersen1999RealizedVolatility}, and \CL{} continuous-future construction are in Suppl~\S{}S1.
+
+\subsection{Label fitting and alignment}\label{sec:methods_fit}
+At each resolution we compute log returns (frequency-aware Winsorization at $\pm 3\%$ for 5m, $\pm 5\%$ for 15m, $\pm 10\%$ for 1h, $\pm 20\%$ for 1d) and rolling realised volatility (windows: 2h for 5m/15m, 24 bars for 1h, 5 bars for 1d), then fit a two-component GMM on log-volatility (full covariance, k-means++ init, 10 EM restarts), labelling the high-mean cluster as crisis. $K{=}2$ is held fixed to operationalise the binary calm/crisis label; a $K{=}3$ robustness fit preserves the 15m$\to$1h collapse at every cell (\S\ref{sec:robustness}). A percentile fallback (top 20\% = crisis) replaces the EM solution when one component absorbs ${>}\,99\%$ of bars (degenerate cells in Suppl Table~S9).
+
+Two preprocessing choices form the \emph{specification} channel: window length (a 6h-aligned fit shifts intraday-only mean ARI into a [0.14, 0.66] band, Suppl Table~S12) and Winsorization (frequency-aware schedule $\pm 3\%$, $\pm 5\%$, $\pm 10\%$, $\pm 20\%$ at 5m/15m/1h/1d; under that schedule the cap is essentially inactive at every frequency, with at most ${\sim}\,1\%$ of CL 1d bars binding; the 15m$\to$1h break is unaffected). CL receives a MAD pre-filter for roll-day jumps (Suppl~\S{}S1). Low-frequency labels are forward-filled onto the 5m axis for comparison; majority-vote (Suppl Table~S16) and expanding-window GMM (Suppl Table~S10) are reported as complements.
+
+\subsection{Cross-resolution metric}\label{sec:methods_metric}
+We summarise resolution-pair agreement with the Adjusted Rand Index \citep[ARI;][]{HubertArabie1985} and Adjusted Mutual Information \citep{Romano2016}; standard errors and significance use block bootstrap and block permutation (default block size 50 5m bars, $\approx$4h; \S\ref{sec:robustness}). \emph{Aggregation loss} denotes within-bar information irretrievably compressed under temporal aggregation, a population property surviving in the infinite-sample limit \citep{ChanZhangCheung2009} and distinct from finite-sample estimation error. ``Calm'' is used in three senses (the low-vol GMM component, the low-vol-day calendar subset, and a fixed five-day non-stress window in matched paired tests), flagged at first use.
+
+\section{Empirical results}
+
+\subsection{Cross-frequency ARI}
+\label{sec:cross_freq}
+
+Table~\ref{tab:cross_freq} reports pairwise cross-frequency ARI. All-pairs mean ARI spans 0.11--0.39 across five 2026 assets (mean 0.199) and 0.13--0.15 across three 2022 OOS assets (mean 0.144). The calibrated $K{=}2$ Markov-switching Gaussian baseline (synthetic returns from the ML-fitted DGP at 5m scale, $P_{12}{=}0.021$, $P_{21}{=}0.028$, principal $1/12$-th root of the SPY 1h ML fit $P_{12}^{1h}{=}0.197$, $P_{21}^{1h}{=}0.256$, routed through the canonical pipeline for $n{=}200$ replications; \S{}S1.3) gives 0.113 (IQR $[0.099, 0.125]$). Four of five 2026 assets exceed the IQR upper bound at 4-frequency; USD/JPY 0.105 lies within. CL's $+0.27$ excess is concentrated in the 1d-touching pairs (the legacy flat $\pm 3\%$ cap had clipped 22\% of CL 1d returns; \S\ref{sec:methods_fit}). At the intraday-only 3-frequency subset (5m/15m/1h) the calibrated baseline is 0.195 (IQR $[0.177, 0.213]$) and all five 2026 assets exceed the upper bound by $+0.03$ (USD/JPY) to $+0.24$ (CL): the uniform-across-panel novel finding. AMI tracks the hierarchy. All pairwise values exceed a block-permutation null at $p<0.002$ (\S\ref{sec:robustness}); the Kruskal--Wallis test on adjacent-intraday/non-adjacent-intraday/intraday$\to$daily pair-classes rejects equality at $p_{\text{Fisher}}=4.3{\times}10^{-6}$ (\S{}S1.2).
+
+\paragraph{Layer 1: Regime-concept resolution-conditionality} The binary regime concept is not resolution-invariant. USD/JPY 2026 5m is effectively unimodal (separation 0.36, overlap 0.85); USD/JPY 15m, CL 5m, and CL 15m are degenerate-split (Suppl Table~S9). At fine resolutions microstructure noise dominates the signal-to-noise ratio that regime classification needs \citep{AitSahaliaMykland2005,GencaySelcukWhitcher2001}. CL's clean 1h GMM (separation 3.05) is regime-concept \emph{emergence at 1h}: oil's 24h session and event-driven heavy tail (1d kurtosis 13.9 vs $\le$ 4.8 for equity ETFs and FX) collapse the calm/crisis bimodality at 5m/15m and only let it crystallise at 1h. The four degenerate cells are therefore evidence \emph{of} resolution sensitivity rather than artefacts to be cleaned away.
+
+\paragraph{Layer 2: Label resolution-conditionality on the clean-fit subset} On (asset, frequency) cells where $K{=}2$ is well-identified, the same trading day is labelled differently across resolutions. 5m--15m agreement is moderate-to-high (SPY 0.539, QQQ 0.536, GLD 0.712); pairs crossing the 15m$\to$1h boundary collapse to ${\le}\,0.19$ in clean fits (SPY 0.138, QQQ 0.133, GLD 0.188). The two equity ETFs (SPY, QQQ, both with all four endpoints non-degenerate) replicate the 5m--15m / 15m--1h contrast on a chance-corrected basis, establishing the structural break is not a SPY-specific artefact. Daily-touching pairs are tiered: USD/JPY ($-0.04$) and GLD ($-0.08$) sit at the random-baseline level, QQQ 1h--1d is 0.086, SPY 0.171, CL 0.393.
+
+\paragraph{CL is event coherence, not Layer 2 invariance} CL 1h--1d ARI 0.393 is the only daily-touching cell materially above zero. The 28 February 2026 joint US--Israeli strike induced a panel-level mean-shift in CL 1d realised volatility ($\approx 1.5\sigma$ above the calm-window mean) that the frequency-aware Winsorization preserves at 1d and is also visible at 1h, so both classifiers flag the post-event period as crisis. Restricted to the event window alone, CL 1h--1d ARI $=-0.01$; restricted to the calm window, $=0.00$. The headline 0.393 is therefore event-driven volatility-level coherence, not a demonstration that CL escapes Layer 2; within either sub-period, CL 1h-vs-1d disagreement matches the other assets.
+
+\paragraph{Aggregation-direction symmetry} Forward-fill and majority-vote aggregation yield identical hierarchies (magnitude difference $<\,0.05$, Table~\ref{tab:cross_freq}), ruling out aggregation-direction artefacts as the headline driver.
+
+% source: outputs/{SPY,CL,USDJPY,GLD}_cross_freq_ari.csv          (forward-fill rows)
+%         outputs/{SPY,CL,USDJPY,GLD}_majority_vote_cross_freq_ari.csv (majority-vote rows)
+%         outputs/{SPY,CL,USDJPY,GLD}_cross_freq_ami.csv          (AMI column)
+\begin{table}[!htbp]
+\centering
+\small
+\setlength{\tabcolsep}{4pt}
+\caption{Cross-frequency pairwise ARI by asset and aggregation direction. AMI column is the per-asset mean over the six off-diagonal pairs (forward-fill).}
+\label{tab:cross_freq}
+\begin{tabular}{llcccc}
+\toprule
+Asset & Method & 5m--15m & 15m--1h & 1h--1d & AMI \\
+\midrule
+\multirow{2}{*}{SPY}
+  & Forward-fill  & 0.539 & 0.138            & 0.171    & 0.138 \\
+  & Majority-vote & 0.541 & 0.153            & 0.220    & ---   \\[3pt]
+\multirow{2}{*}{QQQ}
+  & Forward-fill  & 0.536 & 0.133            & 0.086    & 0.116 \\
+  & Majority-vote & 0.545 & 0.145            & 0.172    & ---   \\[3pt]
+\multirow{2}{*}{CL}
+  & Forward-fill  & 0.694 & 0.308$^\dagger$  & 0.393    & 0.296 \\
+  & Majority-vote & 0.684 & 0.331$^\dagger$  & 0.407    & ---   \\[3pt]
+\multirow{2}{*}{USD/JPY}
+  & Forward-fill  & 0.409 & 0.183$^\dagger$  & $-$0.043 & 0.081 \\
+  & Majority-vote & 0.398 & 0.194$^\dagger$  & $-$0.053 & ---   \\[3pt]
+\multirow{2}{*}{GLD}
+  & Forward-fill  & 0.712 & 0.188            & $-$0.079 & 0.136 \\
+  & Majority-vote & 0.714 & 0.197            & $-$0.086 & ---   \\
+\bottomrule
+\end{tabular}
+\par\medskip
+{\footnotesize\justifying
+\textit{Notes:} Forward-fill propagates coarse labels downward to the 5m axis; majority-vote aggregates fine labels upward (Suppl Table~S16). Six-pair forward-fill mean ARI per asset: 2026 SPY 0.183, QQQ 0.157, USD/JPY 0.105, CL 0.394, GLD 0.155 (mean 0.199); 2022 OOS SPY 0.146, USD/JPY 0.153, GLD 0.133 (mean 0.144; \CL{} omitted, \S\ref{sec:methods_data}). $\dagger$ marks pairs against percentile-fallback labels where the 5m or 15m GMM is degenerate (Suppl Table~S9); these are excluded from the clean-fit reading. \emph{Clean-fit-only mean} ($N$ clean pairs in parentheses): SPY/QQQ/GLD 0.183/0.157/0.155 (6), USD/JPY 0.020 (3), CL 0.393 (1; 1h--1d only). Empirical vs.\ calibrated $K{=}2$ baseline 0.113 (IQR 0.099--0.125; Suppl~\S{}S1.3) is broadly consistent for SPY/QQQ/USD/JPY/GLD with CL the outlier ($+0.27$). Per-asset event/calm/full split is in Suppl Table~S2; CL 1h--1d collapses from full 0.393 to event 0.00 / calm 0.00. AMI is per-asset mean over the six off-diagonal pairs (forward-fill); majority-vote AMI in Suppl. 7-day rolling median sits in [0.076, 0.166] across 2026 and [0.103, 0.121] in 2022 (Suppl).
+\par}
+\end{table}
+
+A 6h-aligned-window decomposition (Suppl Table~S4) absorbs a meaningful share of the within-intraday gap on SPY/QQQ/CL/GLD while USD/JPY moves the opposite direction (its tri-session structure straddles a fixed 6h window); the daily--intraday gap remains near zero. The \emph{specification} and \emph{fundamental} channels are therefore comparable in magnitude and not separately point-identified on this cross-section.
+
+\subsection{Crisis-share heterogeneity and disagreement frequency}
+\label{sec:inversion}
+
+\paragraph{Full-sample disagreement is the headline} Across the eight asset--episode combinations, 1h- and 1d-classifier labels disagree on 18--63\% of sample days (full-sample rates, not stress artefacts; Suppl Tables~S18,~S20); full-sample crisis shares are asset-specific and non-monotonic across resolutions (Table~\ref{tab:crisis_combined}), a temporal extension of the Modifiable Areal Unit Problem \citep{Openshaw1984MAUP,ChengAdepeju2014MTUP}.
+
+\paragraph{Three qualitative dissonance patterns} Three patterns separated by the temporal scale on which disagreement lives, inductively grouped as descriptive shorthand rather than identified mechanisms: \emph{(i) SPY high-frequency day-by-day disagreement}, where 1h and 1d classifiers each separate cleanly, agree on which months are elevated, and disagree on which day is crisis (26\% in 2026 / 44\% in 2022); \emph{(ii) CL low-frequency same-day agreement}, where two well-identified 1h/1d GMMs place crisis on the same supply-shock days, ARI 0.39 (the legacy flat $\pm 3\%$ cap that clipped 22\% of CL 1d returns had depressed this; \S\ref{sec:methods_fit}); \emph{(iii) cross-asset inversion}, where USD/JPY (52.6\%) and GLD (63.1\%) sit at the random-baseline level given near-zero 1h--1d ARI. The three patterns map to different remediations: ensemble VaR for SPY-style instability; onset flagging for CL; per-asset resolution selection for inversion.
+
+\paragraph{Illustrative single-day pattern}
+6 March 2026 makes the cross-asset mechanism concrete (Table~\ref{tab:crisis_combined}, Suppl Table~S3): CL goes from intraday spikes to 1d \textit{calm}; USD/JPY and GLD intensify from partial-crisis intraday to outright 1d \textit{crisis}; SPY is crisis at every resolution. The load-bearing evidence is the 18--63\% full-sample disagreement (\S\ref{sec:cross_freq}).
+
+\paragraph{Economic interpretation}
+The same shock reaches each market through a different microstructure channel: intraday spikes for CL absorbing the Hormuz headline within a session \citep{ReutersIranMarkets2026Feb28}; tri-session safe-haven clustering for USD/JPY; 24-hour overnight repricing for SPY. Heterogeneous trader horizons \citep{MullerDacorognaDave1997HARCH} and price-discovery routing \citep{HasbrouckOneSecurity1995} together with the asymmetric cascade of \citet{GradojevicTsiakas2021} describe the multiscale propagation that a fixed-resolution classifier collapses into a binary label whose value depends on sampling resolution; a regime tag implicitly conditions on a sampling resolution that downstream applications rarely disclose.
+
+% source: outputs/{SPY,CL,USDJPY,GLD}_daily_summary.csv  (per-resolution crisis shares; 6-Mar row from same files filtered to date)
+\begin{table}[!htbp]
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\caption{Crisis share (\%) by resolution: full sample and 6 March 2026 (a peak-stress trading day in the 2026 US--Iran escalation window; disagreement is not stress-exclusive, see Suppl Table~S20). The 1d cell on 6 March is a single-bar classification ($n=1$) and the rightmost ARI is a single-day mean off-diagonal, not directly comparable to the full-sample mean ARI in Table~\ref{tab:cross_freq}.}
+\label{tab:crisis_combined}
+\begin{tabular}{lcccc|ccccc}
+\toprule
+ & \multicolumn{4}{c|}{Full sample} & \multicolumn{5}{c}{6 March 2026} \\
+Asset & 5m & 15m & 1h & 1d & 5m & 15m & 1h & 1d ($n{=}1$) & ARI$_{\text{day}}$ \\
+\midrule
+SPY     & 57.1           & 62.5           & 70.6 & 53.9 & 83.9           & 81.2           & 100.0 & crisis & 0.31 \\
+QQQ     & 55.0           & 60.5           & 62.5 & 85.1 & 80.7           & 79.7           & 100.0 & crisis & 0.29 \\
+CL      & 20.0$^\dagger$ & 20.1$^\dagger$ & 37.7 & 21.7 & 73.5$^\dagger$ & 66.2$^\dagger$ & 100.0 & calm   & 0.10 \\
+USD/JPY & 28.4           & 20.2$^\dagger$ & 16.3 & 65.2 & 33.8           & 26.5$^\dagger$ & 0.0   & crisis & 0.20 \\
+GLD     & 15.6           & 16.6           & 26.8 & 89.2 & 24.0           & 23.4           & 0.0   & crisis & 0.29 \\
+\bottomrule
+\end{tabular}
+\par\medskip
+{\scriptsize\justifying
+\textit{Notes:} 6 March intraday columns: percentage of constituent bars classified as crisis; 1d column ($n{=}1$) is the single daily-bar label. ARI$_{\text{day}}$ is the off-diagonal pairwise mean within that calendar day, not directly comparable to the full-sample mean in Table~\ref{tab:cross_freq}. $^\dagger$Percentile-fallback labels (top 20\% of log-volatility = crisis) used where the underlying GMM is degenerate (CL 2026 5m/15m, USD/JPY 2026 15m; Suppl Table~S9); the full-sample CL $\approx 20\%$ is the mechanical 20\% threshold. Cross-asset 6 March pattern interpreted in \S\ref{sec:inversion}.
+\par}
+\end{table}
+
+
+\subsection{Resolution-dissonance heatmap}
+\label{sec:heatmap}
+
+Figure~\ref{fig:timeline} is the \emph{resolution-dissonance heatmap} for SPY, one of the two assets (with QQQ) whose four-resolution fits are all non-degenerate. The 5m and 15m rows track each other closely while 1h and 1d decouple from the fine resolutions and from each other on a substantial fraction of calendar days; low-agreement runs persist throughout calm sub-periods (consistent with the 26\% 1h--1d disagreement rate being structural, not stress-driven). Heatmaps for QQQ, CL, USD/JPY, GLD are in Suppl Figs~S1 and~S2.
+
+\begin{figure}[!htbp]
+\centering
+\IfFileExists{SPY_timeline.png}{%
+  \includegraphics[width=1\linewidth]{SPY_timeline.png}%
+}{%
+  \fbox{\parbox{0.85\linewidth}{\centering\small [Resolution-dissonance heatmap: run \texttt{python run.py} to generate \texttt{SPY\_timeline.png} in the \texttt{paper} directory]}}%
+}
+\caption{\textbf{Resolution-dissonance heatmap (SPY, 2025-11 to 2026-05).} Each row is one sampling resolution; coarse-resolution labels are forward-filled onto the 5m grid for point-by-point comparability (visual band width reflects label \emph{persistence}, not lower sampling density). Dark red = crisis; blue = calm. Vertical disagreement across rows = resolution dissonance. 6 March 2026 appears as a synchronised red band across all four rows. Heatmaps for QQQ, CL, USD/JPY, GLD in Suppl Figs~S1 and~S2 (CL 5m/15m and USD/JPY 15m rows use percentile-fallback labels per Suppl Table~S9).}
+\label{fig:timeline}
+\end{figure}
+
+\subsection{Robustness and out-of-sample validation}
+\label{sec:robustness}
+
+The 15m$\to$1h single-step drop, the empirical-vs-calibrated alignment, and the intraday-only excess survive parameter, model, sample, and statistical-control checks; full numerics are in the supplement. $K\in\{2,3\}$ and window-multiplier $\in\{0.5,1,2\}$ sweeps preserve the 15m$\to$1h drop on SPY, QQQ, USD/JPY and GLD (CL flatter; Suppl Tables~S6,~S7); the $K{=}3$ calibrated baseline (0.113) tracks $K{=}2$; HMM tracks GMM except on CL (0.441 vs 0.394). Per-asset asymmetric-persistence calibration ($\pi$ matched to each asset's empirical 1h crisis share, $\tau$ pinned at the SPY ML fit) gives 4-frequency baselines in $[0.111, 0.134]$; the only material per-asset residual is CL ($+0.28$, the 1d-touching event-coherence pattern of \S\ref{sec:cross_freq}, not within-period dissonance; Suppl~\S{}S1.5). The 2022 Russia--Ukraine episode reproduces the hierarchy on the three available assets (mean ARI 0.144; Suppl Table~S15). Block-permutation tests reject the independent-shuffle null at $p<0.002$ for every block size in $[25, 250]$ 5m bars; the Kruskal--Wallis test on adjacent-intraday / non-adjacent-intraday / intraday$\to$daily pair-classes rejects equality at $p_{\text{Fisher}}=4.3{\times}10^{-6}$ (Suppl Tables~S5,~S11,~S13). The calm-day subsample yields mean ARI 0.05--0.12 with shape invariant (Suppl Table~S19); the calm-vs-stress paired test fails to reject equality (2026 $p=0.63$; 2022 $p=0.14$; Suppl Table~S20). The 7-day rolling-window ARI trace sits in $[0.076, 0.166]$ and the event-window median is within $\pm 0.02$ of the pre-escalation calm median for SPY/QQQ/USD/JPY/GLD; expanding-window estimation lowers the 2026 mean to 0.108 but preserves direction (Suppl Table~S10). Microstructure noise \citep{GencaySelcukWhitcher2001,AitSahaliaMykland2005} predicts disagreement should concentrate at 5m, but 5m--15m ARI is moderate-to-high and the collapse is at 15m$\to$1h where noise-variance decay is exhausted ($n\in[2{,}098, 3{,}067]$ at 1h); the noise-free Markov-switching baseline reproduces the same hierarchy. \CL{} is robust to excluding roll weeks (Suppl Table~S14). Resolution dissonance is therefore neither episode- nor stress-specific.
+
+\section{Conclusion}\label{sec:conclusion}
+
+Across two geopolitical episodes, regime labels exhibit pronounced, asset-specific \textbf{resolution sensitivity}. Temporal aggregation transforms the DGP itself \citep{ChanZhangCheung2009}, so some disagreement is structural; the empirical question is magnitude against the calibrated baseline. Four of five 2026 assets exceed the calibrated 4-frequency IQR upper bound (USD/JPY within), and all five exceed the intraday-only 3-frequency upper bound by $+0.03$ to $+0.24$, a uniform within-intraday excess. The 15m$\to$1h drop is the largest pairwise fall and replicates on both equity ETFs (estimation failure ruled out by $n\in[2{,}098, 3{,}067]$ at 1h). Resolution dissonance decomposes (\S\ref{sec:methods_fit}) into fundamental aggregation, a specification channel, and microstructure heterogeneity, and is multi-faceted across temporal scales (\S\ref{sec:inversion}): SPY/QQQ day-by-day, CL episode-onset, USD/JPY and GLD cross-asset inversion. Together with the representation-sensitivity result of \citet{companion_rep}, regime labels are neither representation-free nor resolution-free.
+
+\paragraph{Resolution envelope and economic significance}
+We define a \emph{resolution envelope} as the per-resolution regime-conditional 99\% empirical VaR with the cross-resolution range; under SR~26-2 \citep{occ_bulletin_2026_13}\footnote{In April 2026 SR 11-7 (2011) was rescinded and superseded by OCC Bulletin 2026-13 (Federal Reserve letter SR 26-2), jointly issued by the Office of the Comptroller of the Currency, the Federal Reserve Board, and the Federal Deposit Insurance Corporation. The validation principles invoked in this paper (model risk management programmes, undocumented model limitations, conceptual soundness) are preserved in the revised guidance.} and BCBS d457 (FRTB), this is an undocumented model limitation that single-resolution backtesting cannot detect. Instantiated as a \emph{conservative-resolution VaR statistic} on the well-identified \{1h, 1d\} pair, with full-sample uplift $\bar{u}$:
+\begin{equation*}
+V^{*}_t = \max(|\widehat{\text{VaR}}^{1h}_t|,\, |\widehat{\text{VaR}}^{1d}_t|), \qquad
+\bar{u} = T^{-1} \sum_t (V^{*}_t - |\widehat{\text{VaR}}^{1d}_t|) / |\widehat{\text{VaR}}^{1d}_t|
+\end{equation*}
+(\emph{ex post}; a causal expanding-window analogue is left for follow-on work). Cross-asset 2026 uplift range 4.2\% (QQQ) to 21.0\% (CL); 2022 OOS 10.0\%--12.7\% (Suppl Table~S18); for a \$100M-per-instrument desk at 2.0\% baseline VaR the rule absorbs ${\approx}\,22$\,bps in 2026 and ${\approx}\,23$\,bps in 2022 OOS. The algebraic floor of the $\max$-rule is bounded at ${\le}\,0.15\%$ by an EM-restart placebo on two seed-variants of one same-frequency classifier under the canonical pipeline ($n_{\text{init}}=10$; Suppl Table~S23), attributing the headline range essentially fully to cross-resolution dissonance. A second operational use is \emph{risk-budget tightening on disagreement days} via per-asset configuration-pair ratios (SPY's 1.33$\times$ implies a 0.75 tightening factor; Suppl Table~S18). With the heatmap (\S\ref{sec:heatmap}), the envelope makes resolution dissonance explicit, auditable, and actionable under prudential model-risk frameworks.
+
+\section{Future work}
+\label{sec:future_work}
+
+The natural next step for the audit framework is a unified \emph{Model Risk Index} (MRI): a single scalar aligned with SR~26-2 and BCBS~d457 (FRTB) that aggregates resolution dissonance (this paper) with representation dissonance \citep{companion_rep} and other model-specification channels (calibration window, classifier family, feature representation) into one auditable model-risk score per asset and reporting horizon. The MRI generalises the conservative-resolution VaR statistic of \S\ref{sec:conclusion} from a one-channel envelope into a multi-channel diagnostic that desks can post alongside their backtested VaR and that supervisors can use as a model-validation acceptance gate. The audit framework (independent multi-resolution fitting, ARI/AMI agreement, conservative-resolution envelope, resolution-dissonance heatmap) is both asset-class-agnostic and channel-agnostic, supporting MRI integration without modification.
+
+\section*{Acknowledgements}
+
+This research received no specific grant from any funding agency in the public, commercial, or not-for-profit sectors.
+
+\section*{Declaration of competing interest}
+
+The authors declare that they have no known competing financial interests or personal relationships that could have appeared to influence the work reported in this paper.
+
+\section*{Data availability}
+
+5-minute OHLC bars are obtained via Interactive Brokers' historical data service, accessible to subscribers under IB's commercial data agreement; the agreement permits research use but prohibits redistribution of the raw bar feed. The reproducibility pipeline at the GitHub URL given in the Code availability section regenerates, from the raw five-minute feed, the per-bar log-returns, regime labels, ARI matrices, and per-asset diagnostic CSVs that underlie every table and figure in this paper. Replication therefore requires an Interactive Brokers subscription with access to the same historical universe; once the input bars are in place the pipeline produces the derived outputs deterministically.
+
+\section*{Code availability}
+
+The experiment-specific scripts, configuration files, and processed outputs for this paper are at \url{https://github.com/modelguard-lab/Paper2-Regime-Labels-Are-Not-Resolution-Invariant} (\texttt{src/}, \texttt{run.py}, \texttt{outputs/}); the implementation is self-contained and replicates every table and figure end-to-end. The methodology developed here is also released as a standalone Python library, \textbf{mrv-lib} (\texttt{pip install mrv-lib}; source at \url{https://github.com/modelguard-lab/mrv-lib}, documentation at \url{https://mrv-lib.org}), to support downstream application of the resolution-envelope audit to other assets, episodes, and classifiers.
+
+\bibliographystyle{apalike}
+\bibliography{refs}
+
+\end{document}
