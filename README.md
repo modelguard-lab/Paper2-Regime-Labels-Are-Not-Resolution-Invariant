@@ -109,7 +109,7 @@ Output: `raw_dir/<symbol>_5m.csv` with **Date** (America/New_York), **Open**, **
 
 ## License
 
-MIT. See `LICENSE`.
+AGPL-3.0-or-later. See `LICENSE`.
 
 ## Citation
 
