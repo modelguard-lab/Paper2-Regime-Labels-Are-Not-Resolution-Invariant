@@ -14,7 +14,7 @@ Usage
   python run.py stress_vs_calm              # Formal stress-vs-calm ARI test
   python run.py cross_asset                 # Cross-asset resonance figure
   python run.py summarize                   # Summarize window results
-  python run.py all                         # Pipeline + extended + standalone
+  python run.py all                         # Both episodes (2026 + 2022 OOS) + extended + standalone
 
   # Pipeline options (passed through to pipeline):
   python run.py pipeline --download         # Download data only
@@ -122,7 +122,22 @@ def main() -> None:
         configure_console_logging()
         configure_global_file_logging(PROJECT_DIR / "outputs" / "run.log")
         _logger = logging.getLogger("run")
-        _run_pipeline()
+        _run_pipeline()  # 2026 main episode (default config.yaml)
+        # 2022 OOS replica: run only when the 2022 panel is present.
+        if (PROJECT_DIR / "data_2022").is_dir():
+            _logger.info("=" * 60)
+            _logger.info("  2022 OOS episode (episode=2022_ukraine -> outputs_2022/)")
+            _logger.info("=" * 60)
+            run(
+                PROJECT_DIR / "config.yaml",
+                overrides={
+                    "episode": "2022_ukraine",
+                    "raw_dir": "data_2022",
+                    "outputs_dir": "outputs_2022",
+                },
+            )
+        else:
+            _logger.info("Skip 2022 OOS episode: data_2022/ not present.")
         for name in ALL_EXPERIMENT_COMMANDS:
             if name == "pipeline":
                 continue

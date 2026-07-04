@@ -56,7 +56,7 @@ COMMANDS: dict[str, str] = {
     "stress_vs_calm":               "src.experiments.exp_07_stress_vs_calm",     # Table A.19
     "cross_asset":                  "src.visualization.cross_asset_resonance",   # Suppl. cross-asset resonance figure
 
-    # Tier 4 -- Dev helpers (no paper artefact; not in reproduce_paper.sh).
+    # Tier 4 -- Dev helpers (no paper artefact; not in the run.py all chain).
     "summarize":                    "src.experiments.exp_08_summarize_windows",
 }
 

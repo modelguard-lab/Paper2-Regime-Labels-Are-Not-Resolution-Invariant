@@ -15,6 +15,6 @@ Subpackages:
                               ``pipeline_ext`` for the extended sweep).
 
 Nothing is re-exported at the package root; entry points are reached via the
-CLI registry in :mod:`src.commands.cli_registry` (see ``run.py`` and
-``reproduce_paper.sh`` in the project root).
+CLI registry in :mod:`src.commands.cli_registry` (see ``run.py`` in the
+project root).
 """

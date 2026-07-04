@@ -39,7 +39,7 @@ jupyter nbconvert --to notebook --execute --inplace notebooks/*.ipynb
 
 ## Why these notebooks exist
 
-The reproduction script ([`reproduce_paper.sh`](../reproduce_paper.sh))
+The one-command reproduction (`python run.py all`)
 regenerates every output CSV and figure as a single batch. The notebooks
 complement it by walking through the experiment one step at a time on a
 focal asset, exposing the intermediate state (feature matrix, regime

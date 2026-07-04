@@ -24,14 +24,14 @@ python run.py
 ### One-button reproduction
 
 ```bash
-./reproduce_paper.sh        # regenerate every paper Table / Figure under outputs/
+python run.py all           # both episodes (2026 + 2022 OOS) + extended + standalone
 ```
 
-`reproduce_paper.sh` calls each top-level CLI command in order; the **Experiments** section below documents what every sub-experiment does, the method, the headline result, and the output files. Sub-experiments of the `extended` sweep are also individually CLI-registered so reviewers can re-run a single one (e.g. `python run.py extended_bootstrap`).
+`run.py all` runs the 2026 pipeline, the 2022 OOS replica (when `data_2022/` is present), then every extended/standalone experiment in sequence; the **Experiments** section below documents what each sub-experiment does, the method, the headline result, and the output files. Each is also individually CLI-registered so reviewers can re-run a single one (e.g. `python run.py extended_bootstrap`).
 
 ### `notebooks/` vs CLI
 
-The `notebooks/` directory is the **exploratory view** only. Each notebook reads from `outputs/*.csv` already produced by the CLI and renders figures / sanity checks for that single experiment. They do not regenerate the underlying CSVs and are not part of the reproduction pipeline. For paper-grade replication always run `python run.py ...` (or `./reproduce_paper.sh`); use the notebooks only to inspect intermediate artefacts after a CLI run.
+The `notebooks/` directory is the **exploratory view** only. Each notebook reads from `outputs/*.csv` already produced by the CLI and renders figures / sanity checks for that single experiment. They do not regenerate the underlying CSVs and are not part of the reproduction pipeline. For paper-grade replication always run `python run.py all` (or a specific `python run.py <command>`); use the notebooks only to inspect intermediate artefacts after a CLI run.
 
 ### Experiments
 
