@@ -1,4 +1,4 @@
-# Paper: Regime Labels Are Not Resolution-Invariant
+# Paper 2: Regime Labels Are Not Resolution-Invariant
 
 Multi-frequency (5m / 15m / 1h / 1d) regime-detection experiment on the same event window.
 

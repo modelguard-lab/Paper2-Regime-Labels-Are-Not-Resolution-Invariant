@@ -1,12 +1,17 @@
 cff-version: 1.2.0
-message: "If you use this code, please cite the paper and/or this repository."
-title: "Regime Labels Are Not Resolution-Invariant: Evidence from the 2026 US–Iran Escalation"
+message: "If you use this software, please cite the accompanying paper (see preferred-citation)."
+title: "Regime Labels Are Not Resolution-Invariant: Evidence from the 2026 US-Iran Escalation"
 type: software
 authors:
   - family-names: "Zheng"
     given-names: "Kai"
-year: 2026
-doi: 10.2139/ssrn.6531002
+    orcid: "https://orcid.org/0009-0004-6661-2023"
+  - family-names: "Low"
+    given-names: "Rand"
+    orcid: "https://orcid.org/0000-0002-0290-7840"
+  - family-names: "Wang"
+    given-names: "Ruili"
+    orcid: "https://orcid.org/0000-0003-2899-9816"
 license: AGPL-3.0-or-later
 repository-code: "https://github.com/modelguard-lab/Paper2-Regime-Labels-Are-Not-Resolution-Invariant"
 keywords:
@@ -14,3 +19,20 @@ keywords:
   - Gaussian mixture model
   - adjusted Rand index
   - multi-frequency
+preferred-citation:
+  type: article
+  title: "Regime labels are not resolution-invariant: Evidence from the 2026 US-Iran escalation"
+  authors:
+    - family-names: "Zheng"
+      given-names: "Kai"
+      orcid: "https://orcid.org/0009-0004-6661-2023"
+    - family-names: "Low"
+      given-names: "Rand"
+      orcid: "https://orcid.org/0000-0002-0290-7840"
+    - family-names: "Wang"
+      given-names: "Ruili"
+      orcid: "https://orcid.org/0000-0003-2899-9816"
+  journal: "Finance Research Letters"
+  year: 2026
+  doi: "10.2139/ssrn.6531002"
+  notes: "SSRN preprint; accepted at Finance Research Letters (in production)."
