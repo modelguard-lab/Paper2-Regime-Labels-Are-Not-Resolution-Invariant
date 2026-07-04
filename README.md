@@ -31,7 +31,7 @@ python run.py
 
 ### `notebooks/` vs CLI
 
-The `notebooks/` directory is the **exploratory view** only. Each notebook reads from `outputs/*.csv` already produced by the CLI and renders figures / sanity checks for that single experiment. They do not regenerate the underlying CSVs and are not part of the reproduction pipeline. For paper-grade replication always run `python run.py …` (or `./reproduce_paper.sh`); use the notebooks only to inspect intermediate artefacts after a CLI run.
+The `notebooks/` directory is the **exploratory view** only. Each notebook reads from `outputs/*.csv` already produced by the CLI and renders figures / sanity checks for that single experiment. They do not regenerate the underlying CSVs and are not part of the reproduction pipeline. For paper-grade replication always run `python run.py ...` (or `./reproduce_paper.sh`); use the notebooks only to inspect intermediate artefacts after a CLI run.
 
 ### Experiments
 
@@ -109,8 +109,8 @@ Output: `raw_dir/<symbol>_5m.csv` with **Date** (America/New_York), **Open**, **
 
 ## License
 
-AGPL-3.0-or-later. See `LICENSE`.
+AGPL-3.0-or-later. See [LICENSE](LICENSE).
 
 ## Citation
 
-If you use this repository, please cite the associated paper and/or this codebase. See `CITATION.cff`.
+If you use this code, please cite the accompanying paper and/or this repository. See [CITATION.cff](CITATION.cff).
